@@ -16,6 +16,13 @@
             var sourceInfo = sourceInfos[i];
             if (sourceInfo.kind === 'video') {
                 $(videoSelect).css('display', 'inline-block');
+                $(videoSelect).css('background-color', '#154c88');
+                $(videoSelect).css('color', '#dfd8d0');
+                $(videoSelect).css('border-radius', '0');
+                $(videoSelect).css('border', '0');
+                $(videoSelect).css('width', 'width');
+                $(videoSelect).css('opacity', '0');
+                $(videoSelect).css('transition', 'opacity 0.3s ease');
                 var option = document.createElement('option');
                 option.value = sourceInfo.id;
                 option.text = sourceInfo.label || 'camera ' + (videoSelect.length + 1);
@@ -61,8 +68,9 @@ $('#qr-canvas').WebCodeCam({
     threshold: 0, // int
     sharpness: [], //or matrix, example for sharpness ->  [0, -1, 0, -1, 5, -1, 0, -1, 0]
     resultFunction: function(resText, lastImageSrc) {
-        console.log(resText);
-        window.location.href = resText;
+        //Assuming QRCodes starting with 'http://saf-wan-cs-vm21.cloudapp.net:9081/psap/', assigns to var: 'index.xhtml?userId=1'
+        var requiredParams = resText.substring(46, resText.length);
+        window.location.href = window.location.origin + "/psap/" + requiredParams;
     },
     getUserMediaError: function() {
 /*        callback funtion to getUserMediaError
