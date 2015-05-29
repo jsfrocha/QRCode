@@ -1,84 +1,87 @@
-'use strict';
+(function(window) {
+    'use strict';
+    var decoder = $('#qr-canvas'),
+        sl = $('.scanner-laser');
+    sl.css('opacity', .5);
 
-var videoElement;
-var videoSelect = document.querySelector('select#videoSource');
-var videoId = 0;
-var videoPlaceholder;
-var contentElement = $('#main-content');
-
-
-navigator.getUserMedia = navigator.getUserMedia ||
-    navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
-
-function gotSources(sourceInfos) {
-    for (var i = 0; i !== sourceInfos.length; ++i) {
-        var sourceInfo = sourceInfos[i];
-        var option = document.createElement('option');
-        option.value = sourceInfo.id;
-        if (sourceInfo.kind === 'audio') {
-
-        } else if (sourceInfo.kind === 'video') {
-            videoId = sourceInfo.id;
-            option.text = sourceInfo.label || 'camera ' + (videoSelect.length + 1);
-            videoSelect.appendChild(option);
-            videoPlaceholder = $('<div id="reader-'+videoId+'" class="qr-code-placeholder" style="width:300px;height:250px"></div>');
-            videoPlaceholder.appendTo(contentElement);
-        } else {
-            console.log('Some other kind of source: ', sourceInfo);
+    function gotSources(sourceInfos) {
+        var nrSources = 0;
+        for (var i = 0; i !== sourceInfos.length; ++i) {
+            if (sourceInfos[i].kind === 'video')
+                nrSources++;
+        }
+        var videoOptions = [];
+        for (var i = 0; i !== sourceInfos.length; ++i) {
+            if (nrSources === 1) break;
+            var sourceInfo = sourceInfos[i];
+            if (sourceInfo.kind === 'video') {
+                $(videoSelect).css('display', 'inline-block');
+                var option = document.createElement('option');
+                option.value = sourceInfo.id;
+                option.text = sourceInfo.label || 'camera ' + (videoSelect.length + 1);
+                videoOptions.push(option);
+                console.log(videoOptions);
+                videoSelect.appendChild(option);
+            }
         }
     }
-}
-
-if (typeof MediaStreamTrack === 'undefined' ||
-    typeof MediaStreamTrack.getSources === 'undefined') {
-    alert('This browser does not support MediaStreamTrack.\n\nTry Chrome.');
-} else {
-    MediaStreamTrack.getSources(gotSources);
-}
-
-function successCallback(stream) {
-
-    $('.qr-code-placeholder').html5_qrcode(function(data){
-            alert(data);
-        },
-        function(error){
-            //show read errors
-        }, function(videoError){
-            //the video stream could be opened
-        }
-    );
-
-    videoElement = $('reader-'+videoId+' > video')[0];
-    window.stream = stream; // make stream available to console
-    videoElement.src = window.URL.createObjectURL(stream);
-    videoElement.play();
-
-}
-
-function errorCallback(error) {
-    console.log('navigator.getUserMedia error: ', error);
-}
-
-function start() {
-    if (!!window.stream) {
-        videoElement.src = null;
-        window.stream.stop();
-        videoPlaceholder.html5_qrcode_stop();
+    if (typeof MediaStreamTrack.getSources !== 'undefined') {
+        var videoSelect = document.querySelector('select#cameraId');
+        $(videoSelect).change(function(event) {
+            if (typeof decoder.data().plugin_WebCodeCam !== "undefined") {
+                decoder.data().plugin_WebCodeCam.options.videoSource.id = $(this).val();
+                decoder.data().plugin_WebCodeCam.cameraStop();
+                decoder.data().plugin_WebCodeCam.cameraPlay(false);
+            }
+        });
+        MediaStreamTrack.getSources(gotSources);
+    } else {
+        document.querySelector('select#cameraId').remove();
     }
+}).call(window.Page = window.Page || {});
 
+$('#qr-canvas').WebCodeCam({
+    ReadQRCode: true, // false or true
+    ReadBarecode: true, // false or true
+    width: 320,
+    height: 240,
+    videoSource: {
+        id: true,      //default Videosource
+        maxWidth: 640, //max Videosource resolution width
+        maxHeight: 480 //max Videosource resolution height
+    },
+    flipVertical: false,  // false or true
+    flipHorizontal: false,  // false or true
+    zoom: -1, // if zoom = -1, auto zoom for optimal resolution else int
+    beep: "js/beep.mp3", // string, audio file location
+    autoBrightnessValue: false, // functional when value autoBrightnessValue is int
+    brightness: 0, // int
+    grayScale: false, // false or true
+    contrast: 0, // int
+    threshold: 0, // int
+    sharpness: [], //or matrix, example for sharpness ->  [0, -1, 0, -1, 5, -1, 0, -1, 0]
+    resultFunction: function(resText, lastImageSrc) {
+        console.log(resText);
+        window.location.href = resText;
+    },
+    getUserMediaError: function() {
+/*        callback funtion to getUserMediaError
+        example:
+            alert('Sorry, the browser you are using doesn\'t support getUserMedia');*/
 
-    var videoSource = videoSelect.value;
-    var constraints = {
-        video: {
-            optional: [{
-                sourceId: videoSource
-            }]
-        }
-    };
-    navigator.getUserMedia(constraints, successCallback, errorCallback);
-}
+    },
+    cameraError: function(error) {
+        /* callback funtion to cameraError,
+         example:
+         var p, message = 'Error detected with the following parameters:\n';
+         for (p in error) {
+         message += p + ': ' + error[p] + '\n';
+         }
+         alert(message);
+         */
+    }
+});
 
-//videoSelect.onchange = start
-
-start();
-
+$(document).ready(function() {
+   console.log($('#cameraId option').size());
+});

@@ -16,8 +16,18 @@
 
 <section id="main-content" class="inner center">
 
-    <div class="select">
-        <label for="videoSource">Video source: </label><select id="videoSource"></select>
+    <div style="position: relative;display: inline-block;">
+        <canvas id="qr-canvas" width="320" height="240"></canvas>
+        <div class="scanner-laser laser-rightBottom" style="opacity: 0.5;"></div>
+        <div class="scanner-laser laser-rightTop" style="opacity: 0.5;"></div>
+        <div class="scanner-laser laser-leftBottom" style="opacity: 0.5;"></div>
+        <div class="scanner-laser laser-leftTop" style="opacity: 0.5;"></div>
+    </div>
+
+    <div>
+        <select id="cameraId" class="form-control" style="display: none;">
+
+        </select>
     </div>
 
 
@@ -25,8 +35,9 @@
 
 <script src="js/jquery-1.11.3.min.js"></script>
 <script src="js/bootstrap.min.js"></script>
-<script src="js/jsqrcode-combined.min.js"></script>
-<script src="js/html5-qrcode.js"></script>
+<script src="js/qrcodelib.js"></script>
+<script src="js/DecoderWorker.js"></script>
+<script src="js/WebCodeCam.js"></script>
 
 
 <script src="app.js"></script>
